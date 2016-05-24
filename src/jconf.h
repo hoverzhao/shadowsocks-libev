@@ -1,7 +1,7 @@
 /*
  * server.c - Define the config data structure
  *
- * Copyright (C) 2013 - 2015, Max Lv <max.c.lv@gmail.com>
+ * Copyright (C) 2013 - 2016, Max Lv <max.c.lv@gmail.com>
  *
  * This file is part of the shadowsocks-libev.
  * shadowsocks-libev is free software; you can redistribute it and/or modify
@@ -56,7 +56,7 @@ typedef struct {
     char *nameserver;
 } jconf_t;
 
-jconf_t *read_jconf(const char * file);
+jconf_t *read_jconf(const char *file);
 void parse_addr(const char *str, ss_addr_t *addr);
 void free_addr(ss_addr_t *addr);
 

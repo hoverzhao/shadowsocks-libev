@@ -1,7 +1,7 @@
 /*
  * jconf.c - Parse the JSON format config file
  *
- * Copyright (C) 2013 - 2015, Max Lv <max.c.lv@gmail.com>
+ * Copyright (C) 2013 - 2016, Max Lv <max.c.lv@gmail.com>
  *
  * This file is part of the shadowsocks-libev.
  * shadowsocks-libev is free software; you can redistribute it and/or modify
@@ -49,10 +49,8 @@ static char *to_string(const json_value *value)
 
 void free_addr(ss_addr_t *addr)
 {
-    free(addr->host);
-    free(addr->port);
-    addr->host = NULL;
-    addr->port = NULL;
+    ss_free(addr->host);
+    ss_free(addr->port);
 }
 
 void parse_addr(const char *str, ss_addr_t *addr)
@@ -97,9 +95,8 @@ void parse_addr(const char *str, ss_addr_t *addr)
     }
 }
 
-jconf_t *read_jconf(const char * file)
+jconf_t *read_jconf(const char *file)
 {
-
     static jconf_t conf;
 
     char *buf;
@@ -118,7 +115,7 @@ jconf_t *read_jconf(const char * file)
         FATAL("Too large config file.");
     }
 
-    buf = malloc(pos + 1);
+    buf = ss_malloc(pos + 1);
     if (buf == NULL) {
         FATAL("No enough memory.");
     }
@@ -131,7 +128,7 @@ jconf_t *read_jconf(const char * file)
 
     buf[pos] = '\0'; // end of string
 
-    json_settings settings = { 0 };
+    json_settings settings = { 0UL, 0, NULL, NULL, NULL };
     char error_buf[512];
     obj = json_parse_ex(&settings, buf, pos, error_buf);
 
@@ -140,9 +137,9 @@ jconf_t *read_jconf(const char * file)
     }
 
     if (obj->type == json_object) {
-        int i, j;
+        unsigned int i, j;
         for (i = 0; i < obj->u.object.length; i++) {
-            char *name = obj->u.object.values[i].name;
+            char *name        = obj->u.object.values[i].name;
             json_value *value = obj->u.object.values[i].value;
             if (strcmp(name, "server") == 0) {
                 if (value->type == json_array) {
@@ -157,7 +154,7 @@ jconf_t *read_jconf(const char * file)
                 } else if (value->type == json_string) {
                     conf.remote_addr[0].host = to_string(value);
                     conf.remote_addr[0].port = NULL;
-                    conf.remote_num = 1;
+                    conf.remote_num          = 1;
                 }
             } else if (strcmp(name, "port_password") == 0) {
                 if (value->type == json_object) {
@@ -170,7 +167,7 @@ jconf_t *read_jconf(const char * file)
                             conf.port_password[j].port = ss_strndup(value->u.object.values[j].name,
                                                                     value->u.object.values[j].name_length);
                             conf.port_password[j].password = to_string(v);
-                            conf.port_password_num = j + 1;
+                            conf.port_password_num         = j + 1;
                         }
                     }
                 }
@@ -200,8 +197,7 @@ jconf_t *read_jconf(const char * file)
         FATAL("Invalid config file");
     }
 
-    free(buf);
+    ss_free(buf);
     json_value_free(obj);
     return &conf;
-
 }
